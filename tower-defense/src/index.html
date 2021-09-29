@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Tower Defense</title>
+    <style type="text/css">
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      #gameboard {
+        width: 100%;
+        background-color: rgb(133, 94, 58);
+        position: relative;
+      }
+
+      .item {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="gameboard"></div>
+
+    <script type="text/javascript">
+    
+    class Item {
+        _x = 0
+        _y = 0
+
+        constructor(x, y) {
+          this._x = x
+          this._y = y
+        }
+
+        key() {
+          return locationToKey(this._x, this._y)
+        }
+
+        getX() { return this._x }
+        getY() { return this._y }
+
+        colour() { return '#ffffff' }
+        interact(player) {}
+      }
+
+      class Player extends Item {
+        #destinationX = 0
+        #destinationY = 0
+
+        #items = {
+          'wood': 0
+        }
+
+        colour() { return '#800080' }
+
+        giveItem(itemName) {
+          items[itemName]++
+          this.setDestination(0,0)
+        }
+
+        setDestination(x, y) {
+          this.#destinationX = x
+          this.#destinationY = y
+        }
+
+        update() {
+          this._x += this.#getStep(this._x, this.#destinationX)
+          this._y += this.#getStep(this._y, this.#destinationY)
+          interactWithItem(this.key())
+        }
+
+        #getStep(current, destination) {
+          return current > destination ? -10 : current < destination ? 10 : 0
+        }
+      }
+
+      class Tree extends Item {
+        colour() { return '#008000' }
+        interact(player) {
+          if (player.key() === this.key()) {
+            player.giveItem('wood')
+            removeItem(this.key())
+          } else {
+            player.setDestination(this._x, this._y)
+          }
+        }
+      }
+
+      class Random {
+        #MAX_VALUE = 4294967295
+        #ONE_PERCENT = this.#MAX_VALUE / 100
+
+        #nextIndex = 0
+        #source = new Uint32Array(10000)
+        constructor() {
+          this.#populate()
+        }
+
+        #populate() {
+          this.#nextIndex = 0
+          window.crypto.getRandomValues(this.#source)
+        }
+
+        next(upperLimit = 0) {
+          let next = this.#source[this.#nextIndex]
+          if (upperLimit > 0) {
+            const ratio = this.#MAX_VALUE / upperLimit
+            next /= ratio
+          }
+          
+          this.#nextIndex++
+          if (this.#nextIndex === this.#source.length) { this.#populate() }
+          
+          return next
+        }
+
+        position() {
+          const next = this.next(boardLength)
+          return Math.round(next / 10) * 10
+        }
+
+        isSuccess(percentageRequired) {
+          return this.next() >= (this.#ONE_PERCENT * percentageRequired)
+        }
+      }
+    </script>
+
+    <script type="text/javascript">
+      const rngesus = new Random()
+      const player = new Player(0, 0)
+      
+      const items = {}
+      
+      const board = document.querySelector('#gameboard')
+      let boardLength = board.getBoundingClientRect().width
+      board.style.height = boardLength.toString() + 'px'
+      board.addEventListener('click', boardClickHandler)
+
+      function boardClickHandler(event) {
+        if (event.target.classList.contains('item')) {
+          const key = event.target.getAttribute('key')
+          interactWithItem(key)
+        }
+      }
+
+      function interactWithItem(key) {
+        const item = items[key]
+        item?.interact(player)
+      }
+      
+      function maybeSpawnTree() {
+        if (rngesus.isSuccess(75)) {
+          addItem(new Tree(rngesus.position(), rngesus.position()))
+        }
+      }
+
+      function locationToKey(x, y) {
+        return `${ x }_${ y }`
+      }
+
+      function getItemNode(key) {
+        return document.querySelector('#item_' + key)
+      }
+
+      function renderItem(item) {
+        requestAnimationFrame(() => {
+          _renderItem(item)
+        })
+      }
+
+      function _renderItem(item) {
+        const box = document.createElement('div')
+        box.classList.add('item')
+        box.style.backgroundColor = item.colour()
+        box.style.left = item.getX() + 'px'
+        box.style.top = item.getY() + 'px'
+        box.setAttribute('key', item.key())
+        box.setAttribute('id', 'item_' + item.key())
+        board.appendChild(box)
+      }
+
+      function unrenderItem(item) {
+        requestAnimationFrame(() => {
+          _unrenderItem(item)
+        })
+      }
+
+      function _unrenderItem(item) {
+        const node = getItemNode(item.key())
+        console.log('node', node)
+        if (node != null) {
+          console.log('removing item')
+          board.removeChild(node)
+          console.log('removed')
+        }
+      }
+
+      function addItem(item) {
+        const key = item.key()
+        if (getItemNode(key) == null) {
+          items[key] = item
+          renderItem(item)
+        }
+      }
+
+      function removeItem(x, y) {
+        const key = locationToKey(x, y)
+        removeItemByKey[key]
+      }
+      
+      function removeItemByKey(key) {
+        if (items[key] != null) {
+          delete items[key]
+          unrenderItem(key)
+        }
+      }
+
+      function loop() {
+        maybeSpawnTree()
+        requestAnimationFrame(() => {
+          _unrenderItem(player)
+          player.update()
+          _renderItem(player)
+        })
+        setTimeout(loop, 1000)
+      }
+
+      console.log('starting')
+      loop()
+    </script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "tower-defense",
+  "version": "1.0.0",
+  "description": "tower defense game prototype",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "serve": "http-server -c-1 src"
+  },
+  "dependencies": {
+    "http-server": "^13.0.2"
+  }
+}
