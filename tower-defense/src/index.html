@@ -191,11 +191,8 @@
 
       function _unrenderItem(item) {
         const node = getItemNode(item.key())
-        console.log('node', node)
         if (node != null) {
-          console.log('removing item')
           board.removeChild(node)
-          console.log('removed')
         }
       }
 
@@ -229,7 +226,6 @@
         setTimeout(loop, 1000)
       }
 
-      console.log('starting')
       loop()
     </script>
   </body>
