@@ -26,12 +26,12 @@
     <div id="gameboard"></div>
 
     <script type="text/javascript">
-    const TILE_SIZE = 25
+      const TILE_SIZE = 25
     
-    class Item {
+      class Item {
         _x = 0
         _y = 0
-
+        
         constructor(x, y) {
           this._x = x
           this._y = y
@@ -122,6 +122,10 @@
         position() {
           const next = this.next(boardLength - TILE_SIZE)
           return Math.floor(next / TILE_SIZE) * TILE_SIZE
+        }
+
+        id() {
+          return this.next().toString(16).padStart(8, '0')
         }
 
         isSuccess(percentageRequired) {
