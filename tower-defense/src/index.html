@@ -95,7 +95,7 @@
           super(position, position, dimension, dimension)
         }
 
-        interact() {}
+        interact(character) { return false }
 
         colour() { return '#808080' }
       }
@@ -146,9 +146,10 @@
           this._x += xStep
           this._y += yStep
 
-          if (this._x === this._destinationX && this._y === this._destinationY) {
-            // TODO:: Handle updating destination location if item location changes
-            interactWithItem(this, this._destinationKey)
+          const target = items[this._destinationKey]
+          if (target != null && isItemInRange(target, this.getX(), this.getY(), 1)) {
+            target.interact(player)
+            this.setDestination(this.getX(), this.getY())
           }
         }
         
@@ -194,7 +195,6 @@
           return false
         }
 
-        
         hasSpawnRoomStatusChanged() {
           const nowInSpwanRoom = spawnRoom.containsPoint(this.getX(), this.getY())
           const changed = this.#inSpawnRoom !== nowInSpwanRoom
@@ -218,7 +218,6 @@
         interact(character) {
           if (character instanceof Player) {
             character.attemptTrade('wood', 1, 'attractor', 1)
-            character.setDestination(this.getX() - TILE_SIZE, this.getY() - TILE_SIZE, '')
           }
           return true
         }
@@ -273,7 +272,6 @@
 
         interact(character) {
           if (character instanceof Player && !this.#isWithPlayer && character.attemptTrade('wood', 1, 'mercenary', 1)) {
-            // TODO:: rerender so the colour changes
             this.joinPlayer()
           }
           return true
@@ -284,7 +282,6 @@
         colour() { return '#008000' }
         interact(character) {
           character.giveItem('wood')
-          character.setDestination(0,0)
           removeItemByKey(this.key())
           return true
         }
@@ -293,6 +290,7 @@
       class Attractor extends Item {
         colour() { return '#008080' }
         update() {
+          super.update()
           getItemsInRange(this.getX(), this.getY(), 10)
             .filter(item => item.isActingAgainstPlayer())
             .forEach(item => {

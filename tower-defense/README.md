@@ -18,8 +18,5 @@ The wave will try to reach a target, following specific rules like being attract
 If the player sets up the items and fighters well enough, all of the wave will be killed before it reaches its target.
 
 # TO Do
-- Change the way the items divs are rendered and tracked so the player can enter the box of another entity without replacing it.
-- Add central spawn box
-- Add creatures
 - Add tower defense mechanics
 
