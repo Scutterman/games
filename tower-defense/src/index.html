@@ -262,7 +262,7 @@
       const rngesus = new Random()
       const player = new Player()
       const spawnRoom = new SpawnRoom()
-      addItem(spawnRoom)
+      renderItem(spawnRoom)
 
       const itemFactories = [
         new ItemFactory('tree', 95.5, () => new Tree(rngesus.position(), rngesus.position())),
