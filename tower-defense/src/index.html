@@ -123,8 +123,8 @@
         }
 
         setDestination(x, y, key = '') {
-          this.#destinationX = x
-          this.#destinationY = y
+          this.#destinationX = Math.min(Math.max(x, 0), boardLength)
+          this.#destinationY = Math.min(Math.max(y, 0), boardLength)
           this.#destinationKey = key
         }
 
@@ -165,6 +165,7 @@
         interact(character) {
           if (character instanceof Player) {
             character.attemptTrade('wood', 1, 'attractor', 1)
+            character.setDestination(this.getX() - TILE_SIZE, this.getY() - TILE_SIZE, '')
           }
           return true
         }
