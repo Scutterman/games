@@ -219,9 +219,9 @@
           return next
         }
 
-        position() {
-          const next = this.next(boardLength - TILE_SIZE)
-          return snapToTile(next)
+        position(width = boardLength, offset = 0) {
+          const next = this.next(width - TILE_SIZE)
+          return snapToTile(next + offset)
         }
 
         id() {
@@ -232,6 +232,24 @@
           return this.next() >= (this.#ONE_PERCENT * percentageRequired)
         }
       }
+
+      class ItemFactory {
+        #name = ''
+        #chance = 0
+        #builder = () => new Item()
+
+        constructor(name, chance, builder) {
+          this.#name = name
+          this.#chance = chance
+          this.#builder = builder
+        }
+
+        maybeSpawn() {
+          if (rngesus.isSuccess(this.#chance)) {
+            addItem(this.#builder())
+          }
+        }
+      }
     </script>
 
     <script type="text/javascript">
@@ -239,6 +257,17 @@
       const player = new Player()
       const spawnRoom = new SpawnRoom()
       addItem(spawnRoom)
+
+      const itemFactories = [
+        new ItemFactory('tree', 95.5, () => new Tree(rngesus.position(), rngesus.position())),
+        new ItemFactory(
+          'trader',
+           95.5, () => new Trader(
+              rngesus.position(spawnRoom.getWidth(), spawnRoom.getX()),
+              rngesus.position(spawnRoom.getHeight(), spawnRoom.getY())
+            )
+        ),
+      ]
       
       board.addEventListener('click', boardClickHandler)
       
@@ -267,12 +296,6 @@
         }
       }
       
-      function maybeSpawnTree() {
-        if (rngesus.isSuccess(95.5)) {
-          addItem(new Tree(rngesus.position(), rngesus.position()))
-        }
-      }
-
       function getItemNode(key) {
         return document.querySelector('#item_' + key)
       }
@@ -338,8 +361,12 @@
         }
       }
 
+      function handleSpawns() {
+        itemFactories.forEach(factory => factory.maybeSpawn())
+      }
+
       function loop() {
-        maybeSpawnTree()
+        handleSpawns()
         requestAnimationFrame(() => {
           _unrenderItemByKey(player.key())
           player.update()
@@ -365,15 +392,12 @@
 
       function _renderInventoryItems() {
         const scoreboard = getScoreboard()
-        scoreboardChildren = scoreboard.childNodes
-        for (const child of scoreboardChildren) { child.parentNode.removeChild(child) }
-
         const descriptions = player
           .inventoryItems()
           .map(itemName => `${ itemName }: ${ player.inventoryItemValue(itemName)}`)
           .join('<br />')
         
-        scoreboard.appendChild(document.createTextNode(descriptions))
+        scoreboard.innerHTML = descriptions
       }
 
       function getScoreboard() {
