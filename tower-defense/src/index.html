@@ -77,7 +77,7 @@
         hasAgency() { return false }
         isActingAgainstPlayer() { return false }
         update() { }
-        setDestination(x, y, key = '')
+        setDestination(x, y, key = '') { }
       }
 
       class SpawnRoom extends Item {
@@ -106,13 +106,17 @@
         }
 
         update() {
-          this._x += this.#getStep(this._x, this._destinationX)
-          this._y += this.#getStep(this._y, this._destinationY)
+          this._x += this._getStep(this._x, this._destinationX)
+          this._y += this._getStep(this._y, this._destinationY)
 
           if (this._x === this._destinationX && this._y === this._destinationY) {
             // TODO:: Handle updating destination location if item location changes
             interactWithItem(this._destinationKey)
           }
+        }
+        
+        _getStep(current, destination) {
+          return current > destination ? TILE_SIZE * -1 : current < destination ? TILE_SIZE : 0
         }
       }
 
@@ -157,10 +161,6 @@
 
         inventoryItemValue(itemName) {
           return this.#items[itemName]
-        }
-
-        #getStep(current, destination) {
-          return current > destination ? TILE_SIZE * -1 : current < destination ? TILE_SIZE : 0
         }
       }
 
