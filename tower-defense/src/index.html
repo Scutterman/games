@@ -144,7 +144,7 @@
 
           if (this._x === this._destinationX && this._y === this._destinationY) {
             // TODO:: Handle updating destination location if item location changes
-            interactWithItem(this._destinationKey)
+            interactWithItem(this, this._destinationKey)
           }
         }
         
@@ -318,7 +318,7 @@
         let handled = false
         if (event.target.classList.contains('item')) {
           const key = event.target.getAttribute('key')
-          handled = interactWithItem(key)
+          handled = interactWithItem(player, key)
         }
         
         if (!handled) {
@@ -326,16 +326,16 @@
         }
       }
 
-      function interactWithItem(key) {
+      function interactWithItem(character, key) {
         const item = items[key]
         if (item == null) {
           return false
         }
 
-        if (item.containsPoint(player.getX(), player.getY())) {
-          return item.interact(player)
+        if (item.containsPoint(character.getX(), character.getY())) {
+          return item.interact(character)
         } else {
-          player.setDestination(item.getX(), item.getY(), item.key())
+          character.setDestination(item.getX(), item.getY(), item.key())
           return true
         }
       }
@@ -421,9 +421,11 @@
 
       function loop() {
         handleSpawns()
+        Object.values(items).forEach(item => item.update())
+        player.update()
+        
         requestAnimationFrame(() => {
           _unrenderItemByKey(player.key())
-          player.update()
           
           const changed = player.hasSpawnRoomStatusChanged()
             const inside = player.isInSpawnRoom()
