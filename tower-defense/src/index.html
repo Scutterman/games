@@ -76,6 +76,8 @@
         interact(character) { return false }
         hasAgency() { return false }
         isActingAgainstPlayer() { return false }
+        update() { }
+        setDestination(x, y, key = '')
       }
 
       class SpawnRoom extends Item {
@@ -91,7 +93,27 @@
       }
 
       class Character extends Item {
+        _destinationX = 0
+        _destinationY = 0
+        _destinationKey = ''
+        
         hasAgency() { return true }
+        
+        setDestination(x, y, key = '') {
+          this._destinationX = Math.min(Math.max(x, 0), boardLength)
+          this._destinationY = Math.min(Math.max(y, 0), boardLength)
+          this._destinationKey = key
+        }
+
+        update() {
+          this._x += this.#getStep(this._x, this._destinationX)
+          this._y += this.#getStep(this._y, this._destinationY)
+
+          if (this._x === this._destinationX && this._y === this._destinationY) {
+            // TODO:: Handle updating destination location if item location changes
+            interactWithItem(this._destinationKey)
+          }
+        }
       }
 
       class Opposer extends Character {
@@ -99,9 +121,6 @@
       }
 
       class Player extends Character {
-        #destinationX = 0
-        #destinationY = 0
-        #destinationKey = ''
         #inSpawnRoom = false
 
         #items = {
@@ -122,22 +141,7 @@
           }
         }
 
-        setDestination(x, y, key = '') {
-          this.#destinationX = Math.min(Math.max(x, 0), boardLength)
-          this.#destinationY = Math.min(Math.max(y, 0), boardLength)
-          this.#destinationKey = key
-        }
-
-        update() {
-          this._x += this.#getStep(this._x, this.#destinationX)
-          this._y += this.#getStep(this._y, this.#destinationY)
-
-          if (this._x === this.#destinationX && this._y === this.#destinationY) {
-            // TODO:: Handle updating destination location if item location changes
-            interactWithItem(this.#destinationKey)
-          }
-        }
-
+        
         hasSpawnRoomStatusChanged() {
           const nowInSpwanRoom = spawnRoom.containsPoint(this.getX(), this.getY())
           const changed = this.#inSpawnRoom !== nowInSpwanRoom
@@ -183,12 +187,14 @@
 
       class Attractor extends Item {
         colour() { return '#008080' }
-        interact(character) {
-          // TODO:: work out a way to force any character in a specified radius to interact with it
-          if (character.isActingAgainstPlayer() && rngesus.isSuccess(75)) {
-            character.setDestination(this.getX(), this.getY())
-          }
-          return true
+        update() {
+          getItemsInRange(10)
+            .filter(item => item.isActingAgainstPlayer())
+            .forEach(item => {
+              if (rngesus.isSuccess(75)) {
+                character.setDestination(this.getX(), this.getY())
+              }
+            })
         }
       }
 
@@ -299,6 +305,13 @@
       
       function getItemNode(key) {
         return document.querySelector('#item_' + key)
+      }
+
+      function getItemsInRange(x, y, range = 1) {
+        Object.values(items).filter(item =>
+          Math.abs(item.getX() - x) <= range &&
+          Math.abs(item.getY() - y) <= range
+        )
       }
 
       function renderItem(item) {
