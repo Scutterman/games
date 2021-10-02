@@ -221,11 +221,11 @@
       class Attractor extends Item {
         colour() { return '#008080' }
         update() {
-          getItemsInRange(10)
+          getItemsInRange(this.getX(), this.getY(), 10)
             .filter(item => item.isActingAgainstPlayer())
             .forEach(item => {
               if (rngesus.isSuccess(75)) {
-                character.setDestination(this.getX(), this.getY())
+                item.setDestination(this.getX(), this.getY())
               }
             })
         }
