@@ -31,7 +31,7 @@
       const board = document.querySelector('#gameboard')
       const boardLength = board.getBoundingClientRect().width
       board.style.height = boardLength.toString() + 'px'
-
+    
     /******** CLASSES ********/
       const TILE_SIZE = 25
     
@@ -370,7 +370,7 @@
       renderItem(spawnRoom)
 
       const itemFactories = [
-        new ItemFactory('tree', 95.5, () => new Tree(rngesus.position(), rngesus.position())),
+        new ItemFactory('tree', 101, () => new Tree(rngesus.position(), rngesus.position())),
         new ItemFactory(
           'trader',
            99, () => new Trader(
@@ -380,13 +380,13 @@
         ),
         new ItemFactory(
           'melee opponent',
-           99.2, () => new MeleeOpposer(
+           20, () => new MeleeOpposer(
               rngesus.position(spawnRoom.getWidth(), spawnRoom.getX()),
               rngesus.position(spawnRoom.getHeight(), spawnRoom.getY())
             )
         ),new ItemFactory(
           'melee fighter',
-           99.75, () => {
+           101, () => {
               const fighter = new MeleeFighter(
                 rngesus.position(spawnRoom.getWidth(), spawnRoom.getX()),
                 rngesus.position(spawnRoom.getHeight(), spawnRoom.getY())
@@ -441,9 +441,7 @@
 
       function isItemInRange(item, x, y, range = 1) {
         range = range * TILE_SIZE
-        return item =>
-          Math.abs(item.getX() - x) <= range &&
-          Math.abs(item.getY() - y) <= range
+        return Math.abs(item.getX() - x) <= range && Math.abs(item.getY() - y) <= range
       }
 
       function renderItem(item) {
@@ -523,7 +521,7 @@
           _unrenderItemByKey(player.key())
           
           const changed = player.hasSpawnRoomStatusChanged()
-            const inside = player.isInSpawnRoom()
+          const inside = player.isInSpawnRoom()
 
           if (changed) {
             getSpawnRoomItems().forEach(item => {
@@ -542,8 +540,8 @@
           })
  
           if (player.isAlive()) {
-          _renderItem(player)
-          _renderInventoryItems()
+            _renderItem(player)
+            _renderInventoryItems()
             setTimeout(loop, 500)
           }
         })
