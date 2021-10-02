@@ -283,16 +283,20 @@
       }
 
       function boardClickHandler(event) {
+        let handled = false
         if (event.target.classList.contains('item')) {
           const key = event.target.getAttribute('key')
-          interactWithItem(key)
+          handled = interactWithItem(key)
+        }
+        
+        if (!handled) {
+          player.setDestination(snapToTile(event.offsetX), snapToTile(event.offsetY))
         }
       }
 
       function interactWithItem(key) {
         const item = items[key]
         if (item == null) {
-          // TODO:: Use mouse coordinates to work out what square was clicked on so we don't need to click on an item
           return false
         }
 
@@ -300,6 +304,7 @@
           return item.interact(player)
         } else {
           player.setDestination(item.getX(), item.getY(), item.key())
+          return true
         }
       }
       
