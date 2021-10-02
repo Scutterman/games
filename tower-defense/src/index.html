@@ -370,7 +370,7 @@
       renderItem(spawnRoom)
 
       const itemFactories = [
-        new ItemFactory('tree', 101, () => new Tree(rngesus.position(), rngesus.position())),
+        new ItemFactory('tree', 95.5, () => new Tree(rngesus.position(), rngesus.position())),
         new ItemFactory(
           'trader',
            99, () => new Trader(
@@ -380,13 +380,13 @@
         ),
         new ItemFactory(
           'melee opponent',
-           20, () => new MeleeOpposer(
+           97, () => new MeleeOpposer(
               rngesus.position(spawnRoom.getWidth(), spawnRoom.getX()),
               rngesus.position(spawnRoom.getHeight(), spawnRoom.getY())
             )
         ),new ItemFactory(
           'melee fighter',
-           101, () => {
+           99, () => {
               const fighter = new MeleeFighter(
                 rngesus.position(spawnRoom.getWidth(), spawnRoom.getX()),
                 rngesus.position(spawnRoom.getHeight(), spawnRoom.getY())
@@ -542,7 +542,7 @@
           if (player.isAlive()) {
             _renderItem(player)
             _renderInventoryItems()
-            setTimeout(loop, 500)
+            setTimeout(loop, 1000)
           }
         })
 
