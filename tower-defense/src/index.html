@@ -32,7 +32,7 @@
         #key = ''
         _x = 0
         _y = 0
-        
+
         #width = 0
         #height = 0
         _bottomX = 0
@@ -80,7 +80,7 @@
         colour() { return '#800080' }
 
         giveItem(itemName) {
-          items[itemName]++
+          this.#items[itemName]++
           this.setDestination(0,0)
         }
 
@@ -116,7 +116,7 @@
       class Tree extends Item {
         colour() { return '#008000' }
         interact(player) {
-            player.giveItem('wood')
+          player.giveItem('wood')
           removeItemByKey(this.key())
           return true
         }
