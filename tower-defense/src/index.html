@@ -29,28 +29,33 @@
       const TILE_SIZE = 25
     
       class Item {
+        #key = ''
         _x = 0
         _y = 0
         
-        constructor(x, y) {
+        constructor(x, y, width = TILE_SIZE, height = TILE_SIZE) {
+          this.#key = rngesus.id()
           this._x = x
           this._y = y
         }
 
         key() {
-          return locationToKey(this._x, this._y)
+          return this.#key
+        }
+
         }
 
         getX() { return this._x }
         getY() { return this._y }
 
         colour() { return '#ffffff' }
-        interact(player) {}
+        interact(player) { return false }
       }
 
       class Player extends Item {
         #destinationX = 0
         #destinationY = 0
+        #destinationKey = ''
 
         #items = {
           'wood': 0
@@ -63,15 +68,22 @@
           this.setDestination(0,0)
         }
 
-        setDestination(x, y) {
+        setDestination(x, y, key) {
           this.#destinationX = x
           this.#destinationY = y
+          this.#destinationKey = key
         }
 
         update() {
           this._x += this.#getStep(this._x, this.#destinationX)
           this._y += this.#getStep(this._y, this.#destinationY)
-          interactWithItem(this.key())
+
+          if (this._x === this.#destinationX && this._y === this.#destinationY) {
+            // TODO:: Handle updating destination location if item location changes
+            interactWithItem(this.#destinationKey)
+          }
+        }
+
         }
 
         #getStep(current, destination) {
@@ -82,12 +94,9 @@
       class Tree extends Item {
         colour() { return '#008000' }
         interact(player) {
-          if (player.key() === this.key()) {
             player.giveItem('wood')
-            removeItem(this.key())
-          } else {
-            player.setDestination(this._x, this._y)
-          }
+          removeItemByKey(this.key())
+          return true
         }
       }
 
@@ -163,10 +172,6 @@
         }
       }
 
-      function locationToKey(x, y) {
-        return `${ x }_${ y }`
-      }
-
       function getItemNode(key) {
         return document.querySelector('#item_' + key)
       }
@@ -188,14 +193,14 @@
         board.appendChild(box)
       }
 
-      function unrenderItem(item) {
+      function unrenderItemByKey(key) {
         requestAnimationFrame(() => {
-          _unrenderItem(item)
+          _unrenderItemByKey(key)
         })
       }
 
-      function _unrenderItem(item) {
-        const node = getItemNode(item.key())
+      function _unrenderItemByKey(key) {
+        const node = getItemNode(key)
         if (node != null) {
           board.removeChild(node)
         }
@@ -209,22 +214,17 @@
         }
       }
 
-      function removeItem(x, y) {
-        const key = locationToKey(x, y)
-        removeItemByKey[key]
-      }
-      
       function removeItemByKey(key) {
         if (items[key] != null) {
+          unrenderItemByKey(key)
           delete items[key]
-          unrenderItem(key)
         }
       }
 
       function loop() {
         maybeSpawnTree()
         requestAnimationFrame(() => {
-          _unrenderItem(player)
+          _unrenderItemByKey(player.key())
           player.update()
           _renderItem(player)
         })
