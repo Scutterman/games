@@ -26,13 +26,13 @@
     <div id="gameboard"></div>
 
     <script type="text/javascript">
+    /******** GLOBALS ********/
       const items = {}
       const board = document.querySelector('#gameboard')
       const boardLength = board.getBoundingClientRect().width
       board.style.height = boardLength.toString() + 'px'
-    </script>
 
-    <script type="text/javascript">
+    /******** CLASSES ********/
       const TILE_SIZE = 25
     
       class Item {
@@ -257,9 +257,8 @@
           }
         }
       }
-    </script>
 
-    <script type="text/javascript">
+    /******** GAME ********/
       const rngesus = new Random()
       const player = new Player()
       const spawnRoom = new SpawnRoom()
