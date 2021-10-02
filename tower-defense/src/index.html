@@ -439,7 +439,7 @@
           Object.values(items).filter(item => item.isChanged()).forEach(item => {
             _unrenderItemByKey(item.key())
 
-            if (shouldRenderItem(item) || true) {
+            if (shouldRenderItem(item)) {
               _renderItem(item)
             }
 
