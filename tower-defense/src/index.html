@@ -33,16 +33,32 @@
         _x = 0
         _y = 0
         
+        #width = 0
+        #height = 0
+        _bottomX = 0
+        _bottomY = 0
+        
         constructor(x, y, width = TILE_SIZE, height = TILE_SIZE) {
           this.#key = rngesus.id()
           this._x = x
           this._y = y
+          this.#width = width
+          this.#height = height
+          this._bottomX = x + width
+          this._bottomY = y + height
         }
 
         key() {
           return this.#key
         }
 
+        containsPoint(x, y) {
+          return x >= this._x && x < this._bottomX && y >= this._y && y < this._bottomY
+        }
+
+        isInside(left, top, right, bottom) {
+          console.log(`Seeing if ${ this._x },${ this._y} is inside ${ left },${ right },${ top },${ bottom }. ${this._x >= left},${this._x < right},${this._y >= top}, ${this._y < bottom}`)
+          return this._x >= left && this._x < right && this._y >= top && this._y < bottom
         }
 
         getX() { return this._x }
@@ -163,7 +179,16 @@
 
       function interactWithItem(key) {
         const item = items[key]
-        item?.interact(player)
+        if (item == null) {
+          // TODO:: Use mouse coordinates to work out what square was clicked on so we don't need to click on an item
+          return false
+        }
+
+        if (item.containsPoint(player.getX(), player.getY())) {
+          return item.interact(player)
+        } else {
+          player.setDestination(item.getX(), item.getY(), item.key())
+        }
       }
       
       function maybeSpawnTree() {
