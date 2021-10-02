@@ -211,6 +211,13 @@
         inventoryItemValue(itemName) {
           return this.#items[itemName]
         }
+        
+        update () {
+          super.update()
+          getItemsInRange(this.getX(), this.getY(), 1)
+            .filter(item => item.isActingAgainstPlayer())
+            .forEach(item => item.doDamage(1.5))
+        }
       }
 
       class Trader extends Character {
