@@ -18,5 +18,8 @@ The wave will try to reach a target, following specific rules like being attract
 If the player sets up the items and fighters well enough, all of the wave will be killed before it reaches its target.
 
 # TO Do
+- Create more items to buy
+- Prevent multiple items from being in one square if they're different item types
+- Indicate how many items of the same type are in one space
+- Have traders spawn in with a random item for purchase (selected from the list of items without a trader), and indicate what item it is
 - Add tower defense mechanics
-
