@@ -26,6 +26,13 @@
     <div id="gameboard"></div>
 
     <script type="text/javascript">
+      const items = {}
+      const board = document.querySelector('#gameboard')
+      const boardLength = board.getBoundingClientRect().width
+      board.style.height = boardLength.toString() + 'px'
+    </script>
+
+    <script type="text/javascript">
       const TILE_SIZE = 25
     
       class Item {
@@ -38,7 +45,7 @@
         _bottomX = 0
         _bottomY = 0
         
-        constructor(x, y, width = TILE_SIZE, height = TILE_SIZE) {
+        constructor(x = 0, y = 0, width = TILE_SIZE, height = TILE_SIZE) {
           this.#key = rngesus.id()
           this._x = x
           this._y = y
@@ -57,21 +64,45 @@
         }
 
         isInside(left, top, right, bottom) {
-          console.log(`Seeing if ${ this._x },${ this._y} is inside ${ left },${ right },${ top },${ bottom }. ${this._x >= left},${this._x < right},${this._y >= top}, ${this._y < bottom}`)
           return this._x >= left && this._x < right && this._y >= top && this._y < bottom
         }
 
         getX() { return this._x }
         getY() { return this._y }
+        getWidth() { return this.#width }
+        getHeight() { return this.#height }
 
         colour() { return '#ffffff' }
-        interact(player) { return false }
+        interact(character) { return false }
+        hasAgency() { return false }
+        isActingAgainstPlayer() { return false }
       }
 
-      class Player extends Item {
+      class SpawnRoom extends Item {
+        constructor() {
+          const dimension = snapToTile(boardLength / 5)
+          const position = dimension * 2
+          super(position, position, dimension, dimension)
+        }
+
+        interact() {}
+
+        colour() { return '#808080' }
+      }
+
+      class Character extends Item {
+        hasAgency() { return true }
+      }
+
+      class Opposer extends Character {
+        isActingAgainstPlayer() { return true }
+      }
+
+      class Player extends Character {
         #destinationX = 0
         #destinationY = 0
         #destinationKey = ''
+        #inSpawnRoom = false
 
         #items = {
           'wood': 0
@@ -79,12 +110,19 @@
 
         colour() { return '#800080' }
 
-        giveItem(itemName) {
-          this.#items[itemName]++
-          this.setDestination(0,0)
+        giveItem(itemName, quantity = 1) {
+          if (this.#items[itemName] == null) { this.#items[itemName] = 0 }
+          this.#items[itemName] += quantity
         }
 
-        setDestination(x, y, key) {
+        attemptTrade(wantedItemName, wantedItemQuantity, offeredItemName, offeredItemQuantity) {
+          if (this.#items[wantedItemName] >= wantedItemQuantity) {
+            this.#items[wantedItemName] -= wantedItemQuantity
+            this.giveItem(offeredItemName, offeredItemQuantity)
+          }
+        }
+
+        setDestination(x, y, key = '') {
           this.#destinationX = x
           this.#destinationY = y
           this.#destinationKey = key
@@ -100,6 +138,15 @@
           }
         }
 
+        hasSpawnRoomStatusChanged() {
+          const nowInSpwanRoom = spawnRoom.containsPoint(this.getX(), this.getY())
+          const changed = this.#inSpawnRoom !== nowInSpwanRoom
+          if (changed) { this.#inSpawnRoom = nowInSpwanRoom }
+          return changed
+        }
+
+        isInSpawnRoom() { return this.#inSpawnRoom }
+
         inventoryItems() {
           return Object.keys(this.#items)
         }
@@ -113,11 +160,33 @@
         }
       }
 
+      class Trader extends Character {
+        colour() { return '#000080' }
+        interact(character) {
+          if (character instanceof Player) {
+            character.attemptTrade('wood', 1, 'attractor', 1)
+          }
+          return true
+        }
+      }
+
       class Tree extends Item {
         colour() { return '#008000' }
-        interact(player) {
-          player.giveItem('wood')
+        interact(character) {
+          character.giveItem('wood')
+          character.setDestination(0,0)
           removeItemByKey(this.key())
+          return true
+        }
+      }
+
+      class Attractor extends Item {
+        colour() { return '#008080' }
+        interact(character) {
+          // TODO:: work out a way to force any character in a specified radius to interact with it
+          if (character.isActingAgainstPlayer() && rngesus.isSuccess(75)) {
+            character.setDestination(this.getX(), this.getY())
+          }
           return true
         }
       }
@@ -152,7 +221,7 @@
 
         position() {
           const next = this.next(boardLength - TILE_SIZE)
-          return Math.floor(next / TILE_SIZE) * TILE_SIZE
+          return snapToTile(next)
         }
 
         id() {
@@ -167,14 +236,15 @@
 
     <script type="text/javascript">
       const rngesus = new Random()
-      const player = new Player(0, 0)
+      const player = new Player()
+      const spawnRoom = new SpawnRoom()
+      addItem(spawnRoom)
       
-      const items = {}
-      
-      const board = document.querySelector('#gameboard')
-      let boardLength = board.getBoundingClientRect().width
-      board.style.height = boardLength.toString() + 'px'
       board.addEventListener('click', boardClickHandler)
+      
+      function snapToTile(position) {
+        return Math.floor(position / TILE_SIZE) * TILE_SIZE
+      }
 
       function boardClickHandler(event) {
         if (event.target.classList.contains('item')) {
@@ -221,6 +291,15 @@
         box.style.top = item.getY() + 'px'
         box.setAttribute('key', item.key())
         box.setAttribute('id', 'item_' + item.key())
+
+        if (item.getWidth() !== TILE_SIZE) {
+          box.style.width = item.getWidth().toString() + 'px'
+        }
+
+        if (item.getHeight() !== TILE_SIZE) {
+          box.style.height = item.getHeight().toString() + 'px'
+        }
+
         board.appendChild(box)
       }
 
@@ -239,8 +318,15 @@
 
       function addItem(item) {
         const key = item.key()
-        if (getItemNode(key) == null) {
+        if (items[key] == null) {
           items[key] = item
+        }
+
+        const itemNotRendered = getItemNode(key) == null
+        const itemIsSpawnRoom = item === spawnRoom
+        const itemNotInsideSpawnRoom = !spawnRoom.containsPoint(item.getX(), item.getY())
+        const itemNeedsRendering = itemIsSpawnRoom || player.isInSpawnRoom() || itemNotInsideSpawnRoom
+        if (itemNotRendered && itemNeedsRendering) {
           renderItem(item)
         }
       }
@@ -257,10 +343,24 @@
         requestAnimationFrame(() => {
           _unrenderItemByKey(player.key())
           player.update()
+          
+          const changed = player.hasSpawnRoomStatusChanged()
+          if (changed) {
+            const inside = player.isInSpawnRoom()
+            getSpawnRoomItems().forEach(item => {
+              if (inside) { _renderItem(item) }
+              else { _unrenderItemByKey(item.key()) }
+            })
+          }
+
           _renderItem(player)
           _renderInventoryItems()
         })
         setTimeout(loop, 1000)
+      }
+
+      function getSpawnRoomItems() {
+        return Object.values(items).filter(item => spawnRoom.containsPoint(item.getX(), item.getY()))
       }
 
       function _renderInventoryItems() {
