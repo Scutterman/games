@@ -36,6 +36,7 @@
       const TILE_SIZE = 25
     
       class Item {
+        _alive = true
         #key = ''
         _x = 0
         _y = 0
@@ -55,6 +56,8 @@
           this._bottomX = x + width
           this._bottomY = y + height
         }
+
+        isAlive() { return this._alive }
 
         key() {
           return this.#key
@@ -82,6 +85,7 @@
         isActingAgainstPlayer() { return false }
         update() { }
         setDestination(x, y, key = '') { }
+        doDamage (amount) {}
       }
 
       class SpawnRoom extends Item {
@@ -150,6 +154,16 @@
         
         _getStep(current, destination) {
           return current > destination ? TILE_SIZE * -1 : current < destination ? TILE_SIZE : 0
+        }
+
+        doDamage(amount) {
+          console.log(this.key() + ' has lost health ' + amount.toString())
+          this._health -= amount
+          if (this._health <= 0) {
+            console.log(this.key() + ' has died')
+            this._alive = false
+            removeItemByKey(this.key())
+          }
         }
       }
 
