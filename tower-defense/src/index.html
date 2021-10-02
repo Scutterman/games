@@ -100,6 +100,12 @@
           }
         }
 
+        inventoryItems() {
+          return Object.keys(this.#items)
+        }
+
+        inventoryItemValue(itemName) {
+          return this.#items[itemName]
         }
 
         #getStep(current, destination) {
@@ -252,8 +258,33 @@
           _unrenderItemByKey(player.key())
           player.update()
           _renderItem(player)
+          _renderInventoryItems()
         })
         setTimeout(loop, 1000)
+      }
+
+      function _renderInventoryItems() {
+        const scoreboard = getScoreboard()
+        scoreboardChildren = scoreboard.childNodes
+        for (const child of scoreboardChildren) { child.parentNode.removeChild(child) }
+
+        const descriptions = player
+          .inventoryItems()
+          .map(itemName => `${ itemName }: ${ player.inventoryItemValue(itemName)}`)
+          .join('<br />')
+        
+        scoreboard.appendChild(document.createTextNode(descriptions))
+      }
+
+      function getScoreboard() {
+        let scoreboard = document.querySelector('#scoreboard')
+        if (scoreboard == null) {
+          scoreboard = document.createElement('div')
+          scoreboard.setAttribute('id', 'scoreboard')
+          document.body.appendChild(scoreboard)
+        }
+
+        return scoreboard
       }
 
       loop()
