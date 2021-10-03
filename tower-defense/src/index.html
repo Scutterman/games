@@ -589,7 +589,22 @@
 
       function loop() {
         handleSpawns()
-        Object.values(items).forEach(item => item.update())
+
+        const itemGroups = itemsGroupedByAllegiance()
+        ;[Allegiance.opposed, Allegiance.neutral, Allegiance.againstOpposed, Allegiance.withPlayer]
+          .forEach(allegiance => {
+            if (!Array.isArray(itemGroups[allegiance])) { return }
+            itemGroups[allegiance].forEach(item => {
+              item.update()
+            })
+            delete itemGroups[allegiance]
+          })
+        Object.keys(itemGroups)
+          .forEach(allegiance => {
+            console.warn('allegiance not explicitly processed', allegiance)
+            itemGroups[allegiance].forEach(item => item.update())
+          })
+        
         player.update()
         
         requestAnimationFrame(() => {
@@ -621,6 +636,14 @@
             setTimeout(loop, 1000)
           }
         })
+      }
+
+      function itemsGroupedByAllegiance() {
+        return Object.values(items).reduce((group, item) => {
+          if (!Array.isArray(group[item.allegiance()])) { group[item.allegiance()] = [] }
+          group[item.allegiance()].push(item)
+          return group
+        }, {})
       }
 
       function checkIfRoundEnded() {
