@@ -435,10 +435,12 @@
     /******** GAME ********/
       const rngesus = new Random()
       const player = new Player()
+      let placeholderTower = null
       let victoryTower = null
       let roundStartTime = Date.now()
       const spawnRoom = new SpawnRoom()
       renderItem(spawnRoom)
+      setupPlaceholderTower()
 
       const itemFactories = [
         new ItemFactory('tree', 95.5, () => new Tree(rngesus.position(), rngesus.position())),
@@ -652,11 +654,9 @@
         if (timeElapsed() > 180000) {
           roundStartTime = Date.now()
           if (victoryTower == null) {
-            victoryTower = new VictoryTower()
-            addItem(victoryTower)
+            setupVictoryTower()
           } else {
-            removeItemByKey(victoryTower.key())
-            victoryTower = null
+            setupPlaceholderTower()
           }
         }
       }
@@ -686,6 +686,21 @@
         }
 
         return scoreboard
+      }
+
+      function setupPlaceholderTower() {
+        removeItemByKey(victoryTower?.key())
+        victoryTower = null
+        placeholderTower = new VictoryTower()
+        requestAnimationFrame(() => { _renderItem(placeholderTower) })
+      }
+
+      function setupVictoryTower() {
+        requestAnimationFrame(() => {
+          _unrenderItemByKey(placeholderTower.key())
+          victoryTower = placeholderTower
+          addItem(victoryTower)
+        })
       }
 
       loop()
