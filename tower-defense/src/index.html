@@ -326,7 +326,6 @@
           } else if (this.isWithPlayer()) {
             const targets = getItemsInRange(this.getX(), this.getY(), 3).filter(item => item.isActingAgainstPlayer())
             if (targets[0] != null) {
-              console.log(this.key() + ' setting destination ', targets[0].getX(), targets[0].getY(), targets[0].key())
               this.setDestination(targets[0].getX(), targets[0].getY(), targets[0].key())
             }
           }
