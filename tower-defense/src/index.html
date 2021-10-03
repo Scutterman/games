@@ -248,7 +248,7 @@
       class Trader extends Character {
         colour() { return '#000080' }
         interact(character) {
-          if (character instanceof Player) {
+          if (character === player) {
             character.attemptTrade('wood', 1, 'attractor', 1)
           }
           return true
@@ -284,7 +284,6 @@
         colour() { return this.#isWithPlayer ? '#808000' : '#800000' }
         
         joinPlayer() {
-          console.log('Joining player')
           this.#isWithPlayer = true
           this.setChanged(true)
         }
@@ -303,7 +302,7 @@
         }
 
         interact(character) {
-          if (character instanceof Player && !this.#isWithPlayer && character.attemptTrade('wood', 1, 'mercenary', 1)) {
+          if (character === player && !this.#isWithPlayer && character.attemptTrade('wood', 1, 'mercenary', 1)) {
             this.joinPlayer()
           }
           return true
@@ -313,9 +312,12 @@
       class Tree extends Item {
         colour() { return '#008000' }
         interact(character) {
-          character.giveItem('wood')
-          removeItemByKey(this.key())
-          return true
+          if (character === player) {
+            character.giveItem('wood')
+            removeItemByKey(this.key())
+            return true
+          }
+          return false
         }
       }
 
@@ -462,7 +464,7 @@
           return true
         }
       }
-      
+
       function getItemNode(key) {
         return document.querySelector('#item_' + key)
       }
@@ -605,11 +607,11 @@
         const scoreboard = getScoreboard()
         const descriptions = [`time: ${ Math.round(timeElapsed() / 1000) }`, `health: ${ player.health() }`]
           .concat(player
-          .inventoryItems()
-          .map(itemName => `${ itemName }: ${ player.inventoryItemValue(itemName)}`)
+            .inventoryItems()
+            .map(itemName => `${ itemName }: ${ player.inventoryItemValue(itemName)}`)
           )
           .join('<br />')
-        
+
         scoreboard.innerHTML = descriptions
       }
 
