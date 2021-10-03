@@ -36,11 +36,19 @@
     /******** CLASSES ********/
       const TILE_SIZE = 25
     
+      const Allegiance = {
+        withPlayer: 1,
+        againstOpposed: 2,
+        neutral: 4,
+        opposed: 8
+      }
+      
       class Item {
         _alive = true
         _health = 10
         _maxHealth = 10
         _canBeDamaged = false
+        _allegiance = Allegiance.neutral
 
         #key = ''
         _x = 0
@@ -88,7 +96,8 @@
         colour() { return '#ffffff' }
         interact(character) { return false }
         hasAgency() { return false }
-        isActingAgainstPlayer() { return false }
+        isActingAgainstPlayer() { return this._allegiance === Allegiance.opposed }
+        isActingAgainstOpposed() { return this._allegiance === Allegiance.withPlayer || this._allegiance == Allegiance.againstOpposed }
         update() { }
         setDestination(x, y, key = '') { }
         
@@ -127,6 +136,7 @@
           super(x, y)
 
           this._canBeDamaged = true
+          this._allegiance = Allegiance.withPlayer
         }
 
         colour() { return '#ffffff' }
@@ -190,7 +200,11 @@
       }
 
       class Opposer extends Character {
-        isActingAgainstPlayer() { return true }
+        constructor(x = 0, y = 0, width = TILE_SIZE, height = TILE_SIZE) {
+          super(x, y, width, height)
+          this._allegiance = Allegiance.opposed
+        }
+        
         update () {
           if (victoryTower != null) {
             this.setDestination(victoryTower.getX(), victoryTower.getY(), victoryTower.key())
@@ -200,6 +214,11 @@
       }
 
       class Player extends Character {
+        constructor() {
+          super()
+          this._allegiance = Allegiance.withPlayer
+        }
+        
         #inSpawnRoom = false
 
         #items = {
@@ -248,6 +267,11 @@
       }
 
       class Trader extends Character {
+        constructor(x = 0, y = 0, width = TILE_SIZE, height = TILE_SIZE) {
+          super(x, y, width, height)
+          this._allegiance = Allegiance.againstOpposed
+        }
+
         colour() { return '#000080' }
         interact(character) {
           if (character === player) {
@@ -263,14 +287,14 @@
         update () {
           const nearby = isItemInRange(player, this.getX(), this.getY(), 1)
             ? [player]
-            : getItemsInRange(this.getX(), this.getY(), 1).filter(item => !item.isActingAgainstPlayer())
+            : getItemsInRange(this.getX(), this.getY(), 1).filter(item => item.isActingAgainstOpposed())
 
           if (nearby[0] != null) {
             nearby[0].doDamage(1)
           } else {
             const targets = isItemInRange(player, this.getX(), this.getY(), 3)
               ? [player]
-              : getItemsInRange(this.getX(), this.getY(), 3).filter(item => !item.isActingAgainstPlayer())
+              : getItemsInRange(this.getX(), this.getY(), 3).filter(item => item.isActingAgainstOpposed())
 
             if (targets[0] != null) {
               this.setDestination(targets[0].getX(), targets[0].getY(), targets[0].key())
@@ -281,12 +305,16 @@
       }
 
       class MeleeFighter extends Character {
-        #isWithPlayer = false
-
-        colour() { return this.#isWithPlayer ? '#808000' : '#800000' }
+        constructor(x = 0, y = 0, width = TILE_SIZE, height = TILE_SIZE) {
+          super(x, y, width, height)
+          this._allegiance = Allegiance.againstOpposed
+        }
+        
+        isWithPlayer() { return this._allegiance === Allegiance.withPlayer }
+        colour() { return this.isWithPlayer() ? '#808000' : '#800000' }
         
         joinPlayer() {
-          this.#isWithPlayer = true
+          this._allegiance = Allegiance.withPlayer
           this.setChanged(true)
         }
 
@@ -295,16 +323,17 @@
           const nearby = getItemsInRange(this.getX(), this.getY(), 1).filter(item => item.isActingAgainstPlayer())
           if (nearby[0] != null) {
             nearby[0].doDamage(1)
-          } else if (this.#isWithPlayer) {
+          } else if (this.isWithPlayer()) {
             const targets = getItemsInRange(this.getX(), this.getY(), 3).filter(item => item.isActingAgainstPlayer())
             if (targets[0] != null) {
+              console.log(this.key() + ' setting destination ', targets[0].getX(), targets[0].getY(), targets[0].key())
               this.setDestination(targets[0].getX(), targets[0].getY(), targets[0].key())
             }
           }
         }
 
         interact(character) {
-          if (character === player && !this.#isWithPlayer && character.attemptTrade('wood', 1, 'mercenary', 1)) {
+          if (character === player && !this.isWithPlayer() && character.attemptTrade('wood', 1, 'mercenary', 1)) {
             this.joinPlayer()
           }
           return true
@@ -324,6 +353,11 @@
       }
 
       class Attractor extends Item {
+        constructor(x = 0, y = 0, width = TILE_SIZE, height = TILE_SIZE) {
+          super(x, y, width, height)
+          this._allegiance = Allegiance.againstOpposed
+        }
+
         colour() { return '#008080' }
         update() {
           super.update()
