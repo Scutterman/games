@@ -206,10 +206,10 @@
         }
         
         update () {
+          super.update()
           if (victoryTower != null) {
             this.setDestination(victoryTower.getX(), victoryTower.getY(), victoryTower.key())
           }
-          super.update()
         }
       }
 
