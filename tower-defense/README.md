@@ -17,6 +17,10 @@ Remove the item from your hand by clicking on the "wood" label at the bottom.
 
 The game ends if you die or if the Victory Tower dies.
 
+# Project Status
+The prototype is as complete as I'm able to take it for now.
+Other projects are taking up my time.
+
 # Purpose
 This is supposed to be a tower defence game.
 Before the each defence round begins, a resource round plays out.
