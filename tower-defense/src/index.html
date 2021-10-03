@@ -37,6 +37,10 @@
     
       class Item {
         _alive = true
+        _health = 10
+        _maxHealth = 10
+        _canBeDamaged = false
+
         #key = ''
         _x = 0
         _y = 0
@@ -57,6 +61,7 @@
           this._bottomY = y + height
         }
 
+        health() { return this._health }
         isAlive() { return this._alive }
 
         key() {
@@ -85,7 +90,16 @@
         isActingAgainstPlayer() { return false }
         update() { }
         setDestination(x, y, key = '') { }
-        doDamage (amount) {}
+        
+        doDamage(amount) {
+          if (!this._canBeDamaged) { return }
+
+          this._health -= amount
+          if (this._health <= 0) {
+            this._alive = false
+            removeItemByKey(this.key())
+          }
+        }
       }
 
       class SpawnRoom extends Item {
@@ -104,13 +118,12 @@
         _destinationX = 0
         _destinationY = 0
         _destinationKey = ''
-        _health = 10
-        _maxHealth = 10
         
         constructor(x = 0, y = 0, width = TILE_SIZE, height = TILE_SIZE) {
           super(x, y, width, height)
           this._destinationX = this.getX()
           this._destinationY = this.getY()
+          this._canBeDamaged = true
         }
         
         hasAgency() { return true }
@@ -155,16 +168,6 @@
         
         _getStep(current, destination) {
           return current > destination ? TILE_SIZE * -1 : current < destination ? TILE_SIZE : 0
-        }
-
-        doDamage(amount) {
-          console.log(this.key() + ' has lost health ' + amount.toString())
-          this._health -= amount
-          if (this._health <= 0) {
-            console.log(this.key() + ' has died')
-            this._alive = false
-            removeItemByKey(this.key())
-          }
         }
       }
 
