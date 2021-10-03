@@ -179,7 +179,7 @@
 
           const target = items[this._destinationKey]
           if (target != null && isItemInRange(target, this.getX(), this.getY(), 1)) {
-            target.interact(player)
+            target.interact(this)
             this.setDestination(this.getX(), this.getY())
           }
         }
