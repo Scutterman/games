@@ -603,9 +603,11 @@
 
       function _renderInventoryItems() {
         const scoreboard = getScoreboard()
-        const descriptions = player
+        const descriptions = [`time: ${ Math.round(timeElapsed() / 1000) }`, `health: ${ player.health() }`]
+          .concat(player
           .inventoryItems()
           .map(itemName => `${ itemName }: ${ player.inventoryItemValue(itemName)}`)
+          )
           .join('<br />')
         
         scoreboard.innerHTML = descriptions
