@@ -91,6 +91,7 @@
 
         getX() { return this._x }
         getY() { return this._y }
+        changePosition(x, y) { this._x = x; this._y = y }
         getWidth() { return this.#width }
         getHeight() { return this.#height }
 
@@ -221,6 +222,7 @@
           this._allegiance = Allegiance.withPlayer
         }
         
+        #holdingItem = null
         #inSpawnRoom = false
 
         #items = {
@@ -265,6 +267,35 @@
           getItemsInRange(this.getX(), this.getY(), 1)
             .filter(item => item.isActingAgainstPlayer())
             .forEach(item => item.doDamage(1.5))
+
+          if (this.#holdingItem != null && this.getX() === this.#holdingItem.getX() && this.getY() === this.#holdingItem.getY()) {
+            addItem(this.#holdingItem)
+            this.#holdingItem = null
+          }
+        }
+
+        putItemInHand(itemName) {
+          const item = this.#itemFromName(itemName)
+          if (item != null && this.#items[itemName] != null && this.#items[itemName] > 0) {
+            this.#items[itemName]--
+            this.#holdingItem = item
+          }
+        }
+
+        placeItem(x, y) {
+          if (this.#holdingItem != null) {
+            this.#holdingItem.changePosition(x, y)
+            this.setDestination(x, y, this.#holdingItem.key())
+          }
+        }
+
+        #itemFromName(itemName) {
+          switch (itemName) {
+            case 'attractor':
+              return new Attractor(-1, -1)
+            default:
+              return null
+          }
         }
       }
 
@@ -441,7 +472,7 @@
       const spawnRoom = new SpawnRoom()
       renderItem(spawnRoom)
       setupPlaceholderTower()
-
+      
       const itemFactories = [
         new ItemFactory('tree', 95.5, () => new Tree(rngesus.position(), rngesus.position())),
         new ItemFactory(
@@ -480,13 +511,23 @@
 
       function boardClickHandler(event) {
         let handled = false
-        if (event.target.classList.contains('item')) {
+        const classList = event.target.classList
+        if (classList.contains('item')) {
           const key = event.target.getAttribute('key')
           handled = interactWithItem(player, key)
         }
+
+        if (classList.contains('inventory-item')) {
+          const itemName = event.target.getAttribute('data-item-name')
+          player.putItemInHand(itemName)
+          handled = true
+        }
         
         if (!handled) {
-          player.setDestination(snapToTile(event.x), snapToTile(event.y))
+          const x = snapToTile(event.x)
+          const y = snapToTile(event.y)
+          player.placeItem(x, y)
+          player.setDestination(x, y)
         }
       }
 
@@ -670,7 +711,7 @@
         const descriptions = [`time: ${ Math.round(timeElapsed() / 1000) }`, `health: ${ player.health() }`]
           .concat(player
             .inventoryItems()
-            .map(itemName => `${ itemName }: ${ player.inventoryItemValue(itemName)}`)
+            .map(itemName => `<span class="inventory-item" data-item-name="${ itemName }">${ itemName }: ${ player.inventoryItemValue(itemName)}</span>`)
           )
           .join('<br />')
 
@@ -682,6 +723,7 @@
         if (scoreboard == null) {
           scoreboard = document.createElement('div')
           scoreboard.setAttribute('id', 'scoreboard')
+          scoreboard.addEventListener('click', boardClickHandler)
           document.body.appendChild(scoreboard)
         }
 
