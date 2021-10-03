@@ -364,7 +364,7 @@
             .filter(item => item.isActingAgainstPlayer())
             .forEach(item => {
               if (rngesus.isSuccess(75)) {
-                item.setDestination(this.getX(), this.getY())
+                item.setDestination(this.getX(), this.getY(), this.key())
               }
             })
         }
