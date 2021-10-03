@@ -291,7 +291,7 @@
 
           if (nearby[0] != null) {
             nearby[0].doDamage(1)
-          } else {
+          } else if (victoryTower == null) {
             const targets = isItemInRange(player, this.getX(), this.getY(), 3)
               ? [player]
               : getItemsInRange(this.getX(), this.getY(), 3).filter(item => item.isActingAgainstOpposed())
