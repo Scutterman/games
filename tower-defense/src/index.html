@@ -27,6 +27,7 @@
 
     <script type="text/javascript">
     /******** GLOBALS ********/
+      var debug = true
       const items = {}
       const board = document.querySelector('#gameboard')
       const boardLength = board.getBoundingClientRect().width
@@ -518,6 +519,8 @@
       }
 
       function shouldRenderItem(item) {
+        if (debug) { return true }
+
         const itemNotRendered = getItemNode(item.key()) == null
         const isPlayer = item === player
         const itemNotInsideSpawnRoom = !spawnRoom.containsPoint(item.getX(), item.getY())
