@@ -79,11 +79,11 @@
         }
 
         containsPoint(x, y) {
-          return x >= this._x && x < this._bottomX && y >= this._y && y < this._bottomY
+          return x >= this.getX() && x < this._bottomX && y >= this.getY() && y < this._bottomY
         }
 
         isInside(left, top, right, bottom) {
-          return this._x >= left && this._x < right && this._y >= top && this._y < bottom
+          return this.getX() >= left && this.getX() < right && this.getY() >= top && this.getY() < bottom
         }
 
         isChanged() { return this._changed }
@@ -181,8 +181,8 @@
         update() {
           this.#heal()
           this.#updateDestination()
-          const xStep = this._getStep(this._x, this._destinationX)
-          const yStep = this._getStep(this._y, this._destinationY)
+          const xStep = this._getStep(this.getX(), this._destinationX)
+          const yStep = this._getStep(this.getY(), this._destinationY)
           if (xStep !== 0 || yStep !== 0) { this.setChanged(true) }
 
           this._x += xStep
