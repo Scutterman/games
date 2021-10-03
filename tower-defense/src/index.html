@@ -575,7 +575,7 @@
             item.setChanged(false)
           })
  
-          if (player.isAlive()) {
+          if (player.isAlive() && victoryTower?.isAlive() !== false) {
             _renderItem(player)
             _renderInventoryItems()
             checkIfRoundEnded()
