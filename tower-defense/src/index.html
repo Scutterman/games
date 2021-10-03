@@ -114,6 +114,23 @@
         colour() { return '#808080' }
       }
 
+      class VictoryTower extends Item {
+        constructor() {
+          const position1 = 0
+          const position2 = rngesus.position()
+
+          const [x, y] = rngesus.isSuccess(50)
+            ? [position1, position2]
+            : [position2, position1]
+
+          super(x, y)
+
+          this._canBeDamaged = true
+        }
+
+        colour() { return '#ffffff' }
+      }
+
       class Character extends Item {
         _destinationX = 0
         _destinationY = 0
@@ -173,6 +190,11 @@
 
       class Opposer extends Character {
         isActingAgainstPlayer() { return true }
+        update () {
+          if (victoryTower != null) {
+            this.setDestination(victoryTower.getX(), victoryTower.getY(), victoryTower.key())
+          }
+        }
       }
 
       class Player extends Character {
@@ -237,7 +259,6 @@
         colour() { return '#ff0000' }
 
         update () {
-          super.update()
           const nearby = isItemInRange(player, this.getX(), this.getY(), 1)
             ? [player]
             : getItemsInRange(this.getX(), this.getY(), 1).filter(item => !item.isActingAgainstPlayer())
@@ -253,6 +274,7 @@
               this.setDestination(targets[0].getX(), targets[0].getY(), targets[0].key())
             }
           }
+          super.update()
         }
       }
 
@@ -374,6 +396,8 @@
     /******** GAME ********/
       const rngesus = new Random()
       const player = new Player()
+      let victoryTower = null
+      let roundStartTime = Date.now()
       const spawnRoom = new SpawnRoom()
       renderItem(spawnRoom)
 
@@ -520,6 +544,10 @@
         itemFactories.forEach(factory => factory.maybeSpawn())
       }
 
+      function timeElapsed() {
+        return Date.now() - roundStartTime
+      }
+
       function loop() {
         handleSpawns()
         Object.values(items).forEach(item => item.update())
@@ -550,10 +578,23 @@
           if (player.isAlive()) {
             _renderItem(player)
             _renderInventoryItems()
+            checkIfRoundEnded()
             setTimeout(loop, 1000)
           }
         })
+      }
 
+      function checkIfRoundEnded() {
+        if (timeElapsed() > 180000) {
+          roundStartTime = Date.now()
+          if (victoryTower == null) {
+            victoryTower = new VictoryTower()
+            addItem(victoryTower)
+          } else {
+            removeItemByKey(victoryTower.key())
+            victoryTower = null
+          }
+        }
       }
 
       function getSpawnRoomItems() {
