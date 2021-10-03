@@ -279,6 +279,11 @@
         }
 
         putItemInHand(itemName) {
+          if (itemName === 'wood') {
+            this.#holdingItem = null
+            return
+          }
+          
           const item = this.#itemFromName(itemName)
           if (item != null && this.#items[itemName] != null && this.#items[itemName] > 0) {
             this.#items[itemName]--
